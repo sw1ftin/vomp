@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added a source installation that builds the fork as `vomp`, plus a named Nix package and app.
+
 - Added `/vpn` on Linux for Xray subscriptions, profile switching, diagnostics, and an omp-scoped network kill switch.
 
 - Computer `el.setValue(75)` now writes the number as `"75"` instead of refusing a non-string; `NaN`, `Infinity`, booleans and objects are still refused, as are a whole number past 2^53 and a number that prints with an exponent, which are passed as text in digits instead ([#19405](https://github.com/can1357/oh-my-pi/pull/19405) by [@will-bogusz](https://github.com/will-bogusz))

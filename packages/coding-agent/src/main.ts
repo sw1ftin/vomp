@@ -45,6 +45,7 @@ import { fetchBuild } from "./cli/build-service";
 import { applyStartupCwd } from "./cli/startup-cwd";
 import { runAutoUpdate } from "./cli/auto-update";
 import { managedInstallName } from "./cli/managed-install";
+import { CLI_BIN_NAME } from "./cli/launcher-name";
 import { getLatestRelease, isSourceCheckout } from "./cli/update-cli";
 import { findConfigFile } from "./config";
 import { cfgNoJudge, cfgNoSpotlight, cfgOffline } from "./config/auxiliary-model-policy";
@@ -276,7 +277,7 @@ function writeStartupWarning(warning: string): void {
 }
 
 async function checkForNewVersion(currentVersion: string): Promise<string | undefined> {
-	if (!cfgStartupCheckUpdate.get(settings) && !cfgUpdateAuto.get(settings)) {
+	if (CLI_BIN_NAME === "vomp" || (!cfgStartupCheckUpdate.get(settings) && !cfgUpdateAuto.get(settings))) {
 		return;
 	}
 	try {
@@ -763,7 +764,7 @@ async function runInteractiveMode(
 		const notifyNewVersion = (newVersion: string): void => {
 			if (cfgStartupCheckUpdate.get(settings)) mode.showNewVersionNotification(newVersion);
 		};
-		if (cfgUpdateAuto.get(settings)) {
+		if (CLI_BIN_NAME !== "vomp" && cfgUpdateAuto.get(settings)) {
 			void runAutoUpdate(checkedVersionPromise, {
 				show: update => mode.showVersionUpdate(update),
 				notify: notifyNewVersion,

@@ -1,4 +1,5 @@
 import * as fs from "node:fs/promises";
+import { CLI_BIN_NAME } from "../cli/launcher-name";
 import { $ } from "bun";
 import { TempDir } from "@oh-my-pi/pi-utils/temp";
 import { VpnManager, type VpnRequest, type VpnStatus, describeVpn, formatVpnStatus } from "./manager";
@@ -149,7 +150,7 @@ async function runVpnCli(argv: string[]): Promise<void> {
 	const [command = "status", ...args] = argv;
 	if (command === "--help" || command === "-h" || command === "help") {
 		process.stdout.write(
-			"Usage: omp vpn <status|list|add|connect|disconnect|off|doctor|refresh|allow|deny|core>\nPass an HTTPS subscription URL on stdin to omp vpn add.\n",
+			`Usage: ${CLI_BIN_NAME} vpn <status|list|add|connect|disconnect|off|doctor|refresh|allow|deny|core>\nPass an HTTPS subscription URL on stdin to ${CLI_BIN_NAME} vpn add.\n`,
 		);
 		return;
 	}

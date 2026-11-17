@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="https://github.com/can1357/oh-my-pi/blob/main/assets/hero.png?raw=true" alt="omp">
+  <img src="assets/hero.png" alt="Vomp">
 </p>
 
 <p align="center">
   <strong>一个内置 IDE 能力的编程智能体。</strong>
-  <strong><a href="https://omp.sh">omp.sh</a></strong>
+  <strong><a href="https://github.com/sw1ftin/vomp">Vomp</a></strong>
 </p>
 
 <p align="center">
@@ -12,10 +12,9 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@oh-my-pi/pi-coding-agent"><img src="https://img.shields.io/npm/v/@oh-my-pi/pi-coding-agent?style=flat&colorA=222222&colorB=CB3837" alt="npm version"></a>
-  <a href="https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-keep-E05735?style=flat&colorA=222222" alt="Changelog"></a>
-  <a href="https://github.com/can1357/oh-my-pi/actions"><img src="https://img.shields.io/github/actions/workflow/status/can1357/oh-my-pi/ci.yml?style=flat&colorA=222222&colorB=3FB950" alt="CI"></a>
-  <a href="https://github.com/can1357/oh-my-pi/blob/main/LICENSE"><img src="https://img.shields.io/github/license/can1357/oh-my-pi?style=flat&colorA=222222&colorB=58A6FF" alt="License"></a>
+  <a href="packages/coding-agent/CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-keep-E05735?style=flat&colorA=222222" alt="Changelog"></a>
+  <a href="https://github.com/sw1ftin/vomp/actions"><img src="https://img.shields.io/github/actions/workflow/status/sw1ftin/vomp/ci.yml?style=flat&colorA=222222&colorB=3FB950" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/sw1ftin/vomp?style=flat&colorA=222222&colorB=58A6FF" alt="License"></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&colorA=222222&logo=typescript&logoColor=white" alt="TypeScript"></a>
   <a href="https://www.rust-lang.org"><img src="https://img.shields.io/badge/Rust-DEA584?style=flat&colorA=222222&logo=rust&logoColor=white" alt="Rust"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6?style=flat&colorA=222222" alt="Bun"></a>
@@ -35,80 +34,45 @@
 
 ## 安装
 
-**macOS · Linux**
+从 [sw1ftin/vomp](https://github.com/sw1ftin/vomp) 构建 Vomp。从源码安装需要 Bun 1.4.4 或更新版本、Rustup 和系统的 C/C++ 构建工具。Windows 需要安装 MSVC C++ 构建工具。
+
+在 Linux、macOS 或 Windows 的终端运行：
 
 ```sh
-curl -fsSL https://omp.sh/install | sh
+git clone https://github.com/sw1ftin/vomp.git
+cd vomp
+bun run setup --vomp
+vomp --version
 ```
 
-安装脚本会从 `build.stencil.so` 下载预编译二进制，并在安装前校验其 SHA-256；如需改用 bun 安装软件包，请传入 `--source`（PowerShell：`-Source`）。可通过 `curl -fsSL https://omp.sh/install | sh -s -- --binary --ref v<version>` 固定某个版本（PowerShell：`-Binary -Ref v<version>`）。
-
-> **Alpine / musl：** 预编译的 musl 二进制动态链接 `libstdc++`/`libgcc`，而原生 Alpine 并不自带。请先安装：`apk add libstdc++ libgcc`。
-
-**Homebrew**
-
-```sh
-brew install can1357/tap/omp
-```
-
-**Bun（推荐）**
-
-```sh
-bun install -g @oh-my-pi/pi-coding-agent
-```
+安装命令会构建原生模块，然后将 `vomp`（Windows 上为 `vomp.exe`）安装到 Bun 的可执行文件目录，通常是 `~/.bun/bin`。如有需要，将命令输出的目录加入 `PATH`。安装前可以通过 `VOMP_INSTALL_DIR` 指定其他目录。
 
 **Nix**
 
 ```sh
-# Run without installing
-nix run github:can1357/oh-my-pi
-
-# Or install into the active profile (Nix < 2.30: `nix profile install`)
-nix profile add github:can1357/oh-my-pi
+nix run github:sw1ftin/vomp#vomp
+nix profile add github:sw1ftin/vomp#vomp
 ```
 
-Flake 使用者可以使用 `packages.<system>.omp`、`overlays.default`、`nixosModules.default` 或 `homeManagerModules.default`。Home Manager 配置可以安装 OMP 并以声明式方式管理其设置：
+在本地仓库中可以运行 `nix run .#vomp` 或 `nix profile add .#vomp`。
 
-```nix
-{
-  inputs.omp.url = "github:can1357/oh-my-pi";
+### 更新 Vomp
 
-  # In your Home Manager module:
-  imports = [ inputs.omp.homeManagerModules.default ];
-  programs.omp = {
-    enable = true;
-    settings.startup.quiet = true;
-  };
-}
-```
-
-**Windows（PowerShell）**
-
-```powershell
-irm https://omp.sh/install.ps1 | iex
-```
-
-**固定版本（mise）**
-
-```sh
-mise use -g github:can1357/oh-my-pi
-```
-
-macOS · Linux · Windows · bun ≥ 1.4.4
+从源码安装的用户可以在仓库目录运行 `git pull --ff-only` 和 `bun run setup --vomp`。通过 Nix profile 安装的用户可用 `nix profile list` 查找 Vomp 条目，再运行 `nix profile upgrade <name>`。
 
 ### Shell 补全
 
-`omp` 会根据实时的命令/参数元数据，为 **bash**、**zsh** 和 **fish** 生成自己的补全脚本，因此永远不会与实际 CLI 脱节。子命令、参数和枚举值是静态补全的；模型名（`--model`、`--smol`、`--slow`、`--plan`）会根据内置模型目录解析，`--resume` 则根据磁盘上的会话解析。
+`vomp` 会根据实时的命令/参数元数据，为 **bash**、**zsh** 和 **fish** 生成自己的补全脚本，因此永远不会与实际 CLI 脱节。子命令、参数和枚举值是静态补全的；模型名（`--model`、`--smol`、`--slow`、`--plan`）会根据内置模型目录解析，`--resume` 则根据磁盘上的会话解析。
 
 ```sh
 # zsh — add to ~/.zshrc (or write the output into a file on your $fpath)
-eval "$(omp completions zsh)"
+eval "$(vomp completions zsh)"
 
 # bash — add to ~/.bashrc
-eval "$(omp completions bash)"
+eval "$(vomp completions bash)"
 
 # fish
-omp completions fish > ~/.config/fish/completions/omp.fish
+vomp completions fish > ~/.config/fish/completions/vomp.fish
 ```
 
 ## 每个工具，都 _调校到极致_。
@@ -183,7 +147,7 @@ _[观看录屏 ↗](https://omp.sh/clips/advisor.mp4)_
 
 ### 07 · 把链接发给别人，他们就进来了。
 
-/collab 会把你的实时会话放到中继服务器上，并返回一个链接和二维码。队友可以在另一个终端用 omp join 加入，或者直接在浏览器中打开。以读写方式共享即可结对使用同一个智能体；/collab view 则生成只读链接，任何人都能观看但无法操控。数据帧在客户端加密，中继服务器永远拿不到你的密钥。
+/collab 会把你的实时会话放到中继服务器上，并返回一个链接和二维码。队友可以在另一个终端用 vomp join 加入，或者直接在浏览器中打开。以读写方式共享即可结对使用同一个智能体；/collab view 则生成只读链接，任何人都能观看但无法操控。数据帧在客户端加密，中继服务器永远拿不到你的密钥。
 
 ![omp TUI：/collab view 打印 “Collab session started!”，附带 omp join 命令、my.omp.sh 浏览器链接、提示 “Anyone with this link can watch the session but cannot prompt the agent”，以及一个可扫描的大二维码。](https://omp.sh/clips/collab-poster.webp)
 
@@ -227,7 +191,7 @@ _[观看录屏 ↗](https://omp.sh/clips/web.mp4)_
 
 其他智能体都附带一个导入器，指望你去转换。omp 直接以原生格式读取磁盘上已有的八种格式——Cursor MDC、Cline .clinerules、Codex AGENTS.md、Copilot applyTo 等等。没有迁移脚本，没有 YAML 转 TOML，也没有“仅支持部分功能”的脚注。团队上个季度写的配置，今晚照样能用。
 
-### 16 · omp commit：原子拆分，校验过的提交信息
+### 16 · vomp commit：原子拆分，校验过的提交信息
 
 omp 通过 git_overview、git_file_diff 和 git_hunk 读取工作区，然后把不相关的修改拆分成原子提交，并按依赖关系排序。存在循环依赖时会在写入任何内容前拒绝。源代码文件的权重高于测试、文档和配置，因此首个提交就是最重要的那个。锁文件完全不参与分析。
 
@@ -374,7 +338,7 @@ providers:
            maxTokens: 32000
 ```
 
-运行 `omp models spark` 确认能发现该提供商的模型。然后运行 `omp setup` 并在选择默认模型的步骤中选中它，或在会话中打开 `/model` 将其分配给 `default` 角色。
+运行 `vomp models spark` 确认能发现该提供商的模型。然后运行 `vomp setup` 并在选择默认模型的步骤中选中它，或在会话中打开 `/model` 将其分配给 `default` 角色。
 
 如果不想通过选择器，也可以直接在 `~/.omp/agent/config.yml` 中预先配置默认模型：
 
@@ -501,7 +465,7 @@ Exa 也可以通过 `/login exa` 存储 API 密钥；显式选择无密钥模式
 
 ## 四种入口：_交互式_、_单次执行_、RPC 和 ACP。
 
-同一个引擎，四种封装。`omp` 运行 TUI。`omp -p` 回答单个提示后退出。Node SDK 把会话嵌入你的进程。`omp --mode rpc` 和 `omp acp` 通过 stdio 把控制权交给另一个程序。
+同一个引擎，四种封装。`vomp` 运行 TUI。`vomp -p` 回答单个提示后退出。Node SDK 把会话嵌入你的进程。`vomp --mode rpc` 和 `vomp acp` 通过 stdio 把控制权交给另一个程序。
 
 ### 交互式——拿不准时，智能体会问你
 
@@ -534,12 +498,12 @@ await session.prompt("list .ts files");
 
 ### RPC——通过 stdio 驱动
 
-`omp --mode rpc`
+`vomp --mode rpc`
 
 适用于非 Node 的嵌入方，或需要进程隔离的场景。输入 NDJSON 命令，输出响应帧和事件帧；每个提示以各自的 `prompt_result` 结束。`--mode rpc-ui` 会额外以 `extension_ui_request` 帧的形式发送工具卡片、选择器和对话框，宿主必须应答；`--no-ui` 则连扩展对话框也不会发送，适用于没有 UI 的宿主。
 
 ```
-$ omp --mode rpc --no-session
+$ vomp --mode rpc --no-session
 > {"id":"r1","type":"prompt","message":"list .ts files"}
 < {"id":"r1","type":"response", ...}
 > {"id":"r2","type":"set_model","provider":"anthropic","modelId":"sonnet-4.5"}
@@ -548,7 +512,7 @@ $ omp --mode rpc --no-session
 
 ### ACP——与编辑器对话
 
-`omp acp`
+`vomp acp`
 
 基于 JSON-RPC 的 [Agent Client Protocol](https://github.com/zed-industries/agent-client-protocol)。当编辑器声明了相应能力时，工具 I/O 会经由编辑器路由，写入操作需通过 `session/request_permission` 授权。
 
@@ -609,17 +573,19 @@ mcp:
 全新克隆的仓库需要先安装工作区依赖并构建本地 Rust/N-API 插件，源码版 CLI 才能启动。
 
 ```sh
-bun setup
+bun install
+bun run build:native
 bun dev
 ```
 
-`bun setup` 会安装 Bun 工作区依赖并构建 `@oh-my-pi/pi-natives`。修改 Rust crate 或 `packages/natives` 后，请重新运行 `bun run build:native`。
+`bun install` 安装工作区依赖，`bun run build:native` 构建 `@oh-my-pi/pi-natives`。修改 Rust crate 或 `packages/natives` 后，请重新运行 `bun run build:native`。
 
 Nix 用户可以获得固定版本的 Bun 和 Rust 工具链以及所有原生构建依赖：
 
 ```sh
 nix develop
-bun setup
+bun install
+bun run build:native
 bun dev
 ```
 
@@ -693,7 +659,7 @@ Issue 和 Pull Request 向所有人开放。开放 PR 目前处于**试行**阶�
 
 OMP 基于 [MIT 许可证](LICENSE) 发布。
 
-第三方代码和内置（vendored）的上游代码，包括 `crates/pi-builtins/LICENSE` 中标明的第三方部分，仍遵循各自上游的许可证。每个发布的组件都附带自己的 `THIRD-PARTY-NOTICES.txt`：CLI（`packages/coding-agent`）、原生插件（`packages/natives`）和 robomp（`python/robomp`）。`omp --license` 会打印 CLI 和原生插件的许可声明。
+第三方代码和内置（vendored）的上游代码，包括 `crates/pi-builtins/LICENSE` 中标明的第三方部分，仍遵循各自上游的许可证。每个发布的组件都附带自己的 `THIRD-PARTY-NOTICES.txt`：CLI（`packages/coding-agent`）、原生插件（`packages/natives`）和 robomp（`python/robomp`）。`vomp --license` 会打印 CLI 和原生插件的许可声明。
 
 © 2025 Mario Zechner  
 © 2025-2026 Can Bölük  
@@ -703,8 +669,8 @@ _为常开的终端而生_
 
 - [omp.sh](https://omp.sh)
 - [Stencil Labs](https://stencil.so)
-- [GitHub](https://github.com/can1357/oh-my-pi)
-- [变更日志](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/CHANGELOG.md)
-- [npm](https://www.npmjs.com/package/@oh-my-pi/pi-coding-agent)
+- [Vomp 的 GitHub 仓库](https://github.com/sw1ftin/vomp)
+- [上游 oh-my-pi](https://github.com/can1357/oh-my-pi)
+- [变更日志](packages/coding-agent/CHANGELOG.md)
 - [Discord](https://discord.gg/4NMW9cdXZa)
-- [MIT](https://github.com/can1357/oh-my-pi/blob/main/LICENSE)
+- [MIT](LICENSE)

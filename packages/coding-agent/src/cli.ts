@@ -18,17 +18,11 @@ import type * as WorkerThreads from "node:worker_threads";
 import type { MessagePort } from "node:worker_threads";
 import type { CliConfig, CommandMetadata } from "@oh-my-pi/pi-utils/cli";
 import type * as Postmortem from "@oh-my-pi/pi-utils/postmortem";
-import {
-	APP_NAME,
-	getActiveProfile,
-	MIN_BUN_VERSION,
-	resolveProfileEnv,
-	setProfile,
-	VERSION,
-} from "@oh-my-pi/pi-utils/dirs";
+import { getActiveProfile, MIN_BUN_VERSION, resolveProfileEnv, setProfile, VERSION } from "@oh-my-pi/pi-utils/dirs";
 
 import { declareWorkerHostEntry, installWorkerInbox, isWorkerHostSelector } from "@oh-my-pi/pi-utils/worker-host";
 import { installSqliteLockShim } from "@oh-my-pi/pi-natives/sqlite-locks";
+import { CLI_BIN_NAME } from "./cli/launcher-name";
 import { isNativeShell, runNativeShell } from "./cli/native-shell";
 import { extractProfileFlags } from "./cli/profile-bootstrap";
 import {
@@ -61,7 +55,7 @@ if (Bun.semver.order(Bun.version, MIN_BUN_VERSION) < 0) {
 // (see `setProcessName`): every omp child would retitle the pane's tab.
 if (process.platform !== "win32") {
 	try {
-		process.title = APP_NAME;
+		process.title = CLI_BIN_NAME;
 	} catch {}
 }
 
@@ -108,7 +102,7 @@ const PREPAINT_SAFE_FLAGS: Record<string, true> = {
 async function setFullProcessName(): Promise<void> {
 	// Latency boundary: bun:ffi/node:os are unnecessary before the first frame.
 	const { setProcessName } = await import("@oh-my-pi/pi-utils/process-name");
-	setProcessName(APP_NAME);
+	setProcessName(CLI_BIN_NAME);
 }
 
 /** Install PI_PROXY handling before any command implementation can make a provider request. */
@@ -616,7 +610,7 @@ export async function runCli(argv: string[]): Promise<void> {
 			return;
 		}
 		runningCommand = resolved.argv[0];
-		await run({ bin: APP_NAME, version: VERSION, argv: resolved.argv, commands, metadataHelp: showHelp });
+		await run({ bin: CLI_BIN_NAME, version: VERSION, argv: resolved.argv, commands, metadataHelp: showHelp });
 	} finally {
 		stopStartupComposer?.();
 	}

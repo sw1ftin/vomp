@@ -5,6 +5,7 @@
 import chalk from "@oh-my-pi/pi-utils/chalk";
 import { Command, Flags } from "@oh-my-pi/pi-utils/cli";
 import { updateHelp as commandHelp } from "../cli/command-help";
+import { CLI_BIN_NAME } from "../cli/launcher-name";
 import * as pluginCli from "../cli/plugin-cli";
 import * as updateCli from "../cli/update-cli";
 import { CliUsageError } from "../cli/usage-error";
@@ -20,7 +21,8 @@ export default class Update extends Command {
 		stable: Flags.boolean({ description: "Switch back to the stable channel", default: false }),
 	};
 
-	static examples = ["omp update", "omp update --check", "omp update --canary"];
+	static examples =
+		CLI_BIN_NAME === "vomp" ? ["vomp update --plugins"] : ["omp update", "omp update --check", "omp update --canary"];
 
 	async run(): Promise<void> {
 		const { flags } = await this.parse(Update);
@@ -29,6 +31,11 @@ export default class Update extends Command {
 		if (flags.plugins) {
 			await pluginCli.runPluginCommand({ action: "upgrade", args: [], flags: flags.check ? { dryRun: true } : {} });
 		} else {
+			if (CLI_BIN_NAME === "vomp") {
+				throw new CliUsageError(
+					"Update Vomp from https://github.com/sw1ftin/vomp using your original installation method.",
+				);
+			}
 			try {
 				await updateCli.runUpdateCommand({
 					force: flags.force,

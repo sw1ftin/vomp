@@ -4,32 +4,48 @@
  * addon build → coding-agent link → omp link). The native host build uses
  * the local Cargo/N-API backend by default; set
  * `OMP_NATIVE_BUILD_BACKEND=bazel` to opt into bazel. Flags after `--` are
- * appended to the native build invocation.
+ * appended to the native build invocation. Pass `--vomp` to build and install
+ * the fork binary instead of linking the development CLI.
  *
  * On Windows the final `link omp` step runs natively in this file instead of
  * spawning `sh` (issue #12483): same target check, same global-bin lookup
  * order, symlink with copy fallback.
  */
 import * as fs from "node:fs";
+import * as fsp from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 const repoRoot = path.join(import.meta.dir, "..");
 
 const argv = process.argv.slice(2);
 const passthrough: string[] = [];
+let installFork = false;
 for (let i = 0; i < argv.length; i++) {
 	const arg = argv[i];
 	if (arg === "--") {
 		passthrough.push(...argv.slice(i + 1));
 		break;
 	}
-	passthrough.push(arg);
+	if (arg === "--vomp") installFork = true;
+	else passthrough.push(arg);
 }
 
 interface Step {
 	label: string;
 	cmd: string[];
 	cwd?: string;
+	env?: NodeJS.ProcessEnv;
+}
+
+function resolveGlobalBin(): string {
+	try {
+		const out = Bun.spawnSync(["bun", "pm", "-g", "bin"], { stdout: "pipe", stderr: "ignore" });
+		const globalBin = out.stdout.toString().trim();
+		if (out.exitCode === 0 && globalBin) return globalBin;
+	} catch {
+		// Bun's global package directory may not exist on a fresh installation.
+	}
+	return path.join(process.env.BUN_INSTALL ?? path.join(os.homedir(), ".bun"), "bin");
 }
 
 /**
@@ -48,14 +64,7 @@ function linkOmpWindows(repoRoot: string): number {
 		console.error(`link-omp: target wrapper not found: ${target}`);
 		return 1;
 	}
-	let globalBin = "";
-	try {
-		const out = Bun.spawnSync(["bun", "pm", "-g", "bin"], { stdout: "pipe", stderr: "ignore" });
-		if (out.exitCode === 0) globalBin = Buffer.from(out.stdout).toString().trim();
-	} catch {
-		// fall through to the default below
-	}
-	if (!globalBin) globalBin = path.join(process.env.BUN_INSTALL ?? path.join(os.homedir(), ".bun"), "bin");
+	const globalBin = resolveGlobalBin();
 	const linkPath = path.join(globalBin, "omp");
 	try {
 		fs.mkdirSync(globalBin, { recursive: true });
@@ -80,11 +89,39 @@ function linkOmpWindows(repoRoot: string): number {
 	}
 }
 
+async function installVomp(): Promise<void> {
+	const extension = process.platform === "win32" ? ".exe" : "";
+	const binary = path.join(repoRoot, "packages", "coding-agent", "dist", `omp${extension}`);
+	const directory = path.resolve(process.env.VOMP_INSTALL_DIR || resolveGlobalBin());
+	const destination = path.join(directory, `vomp${extension}`);
+	await fsp.mkdir(directory, { recursive: true });
+	const staging = await fsp.mkdtemp(path.join(directory, ".vomp-"));
+	try {
+		const candidate = path.join(staging, `vomp${extension}`);
+		await fsp.copyFile(binary, candidate);
+		await fsp.chmod(candidate, 0o755);
+		await fsp.rename(candidate, destination);
+	} finally {
+		await fsp.rm(staging, { recursive: true, force: true });
+	}
+	console.log(`Installed ${destination}. Add ${directory} to PATH if needed.`);
+}
+
 const steps: Step[] = [
 	{ label: "bun install", cmd: ["bun", "install"] },
 	{ label: "build:native", cmd: ["bun", "run", "build:native", ...passthrough] },
-	{ label: "coding-agent link", cmd: ["bun", "--cwd=packages/coding-agent", "link"] },
-	{ label: "link omp", cmd: ["sh", "scripts/link-omp.sh"] },
+	...(installFork
+		? [
+				{
+					label: "build vomp",
+					cmd: ["bun", "--cwd=packages/coding-agent", "run", "build"],
+					env: { ...process.env, CROSS_TARGET: "" },
+				},
+			]
+		: [
+				{ label: "coding-agent link", cmd: ["bun", "--cwd=packages/coding-agent", "link"] },
+				{ label: "link omp", cmd: ["sh", "scripts/link-omp.sh"] },
+			]),
 ];
 
 for (const step of steps) {
@@ -99,7 +136,7 @@ for (const step of steps) {
 	}
 	const proc = Bun.spawn(step.cmd, {
 		cwd: step.cwd ?? repoRoot,
-		env: process.env,
+		env: step.env ?? process.env,
 		stdout: "inherit",
 		stderr: "inherit",
 	});
@@ -109,3 +146,5 @@ for (const step of steps) {
 		process.exit(exitCode || 1);
 	}
 }
+
+if (installFork) await installVomp();

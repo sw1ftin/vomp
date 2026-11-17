@@ -1,3 +1,4 @@
+import { CLI_BIN_NAME } from "../cli/launcher-name";
 import * as fs from "node:fs/promises";
 import { type RunningCore, installCore, probeCore, startCore } from "./core";
 import { type VpnState, readVpnState, updateVpnState } from "./store";
@@ -47,7 +48,7 @@ export function formatVpnStatus(status: VpnStatus): string {
 		case "blocked":
 			return "VPN · blocked";
 		case "restart":
-			return "VPN · restart omp to apply";
+			return `VPN · restart ${CLI_BIN_NAME} to apply`;
 		case "off":
 			return "VPN · off";
 	}
@@ -199,7 +200,7 @@ export class VpnManager {
 			if (request.command === "doctor") {
 				if (!this.#active?.core.isRunning())
 					throw new VpnError(
-						"No live Xray tunnel in this omp process. Connect a profile and relaunch if prompted.",
+						`No live Xray tunnel in this ${CLI_BIN_NAME} process. Connect a profile and relaunch if prompted.`,
 					);
 				this.#active.unhealthy = !(await probeCore(this.#active.core));
 				if (this.#active.unhealthy) throw new VpnError("HTTPS probe through Xray failed.");
@@ -212,7 +213,7 @@ export class VpnManager {
 						const url = request.url?.trim();
 						if (!url) throw new VpnError("Enter a subscription URL in the masked prompt.");
 						if (this.gateway && !this.#active?.core.isRunning())
-							throw new VpnError("Connect first, or import from a host terminal with omp vpn add.");
+							throw new VpnError(`Connect first, or import from a host terminal with ${CLI_BIN_NAME} vpn add.`);
 						const existing = state.subscriptions.find(sub => sub.url === url);
 						const id = existing?.id ?? crypto.randomUUID().slice(0, 8);
 						const profiles = await downloadSubscription(url, id, this.#active?.core.proxy);
@@ -283,7 +284,9 @@ export class VpnManager {
 					case "core":
 						if (args[0] !== "install") throw new VpnError("Use vpn core install [version SHA-256].");
 						if (this.gateway && !this.#active?.core.isRunning())
-							throw new VpnError("Connect first, or install from a host terminal with omp vpn core install.");
+							throw new VpnError(
+								`Connect first, or install from a host terminal with ${CLI_BIN_NAME} vpn core install.`,
+							);
 						state.core = await installCore(args[1], args[2], this.#active?.core.proxy);
 						break;
 					default:

@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="https://github.com/can1357/oh-my-pi/blob/main/assets/hero.png?raw=true" alt="omp">
+  <img src="assets/hero.png" alt="Vomp">
 </p>
 
 <p align="center">
   <strong>A coding agent with the IDE wired in.</strong>
-  <strong><a href="https://omp.sh">omp.sh</a></strong>
+  <strong><a href="https://github.com/sw1ftin/vomp">Vomp</a></strong>
 </p>
 
 <p align="center">
@@ -12,10 +12,9 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@oh-my-pi/pi-coding-agent"><img src="https://img.shields.io/npm/v/@oh-my-pi/pi-coding-agent?style=flat&colorA=222222&colorB=CB3837" alt="npm version"></a>
-  <a href="https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-keep-E05735?style=flat&colorA=222222" alt="Changelog"></a>
-  <a href="https://github.com/can1357/oh-my-pi/actions"><img src="https://img.shields.io/github/actions/workflow/status/can1357/oh-my-pi/ci.yml?style=flat&colorA=222222&colorB=3FB950" alt="CI"></a>
-  <a href="https://github.com/can1357/oh-my-pi/blob/main/LICENSE"><img src="https://img.shields.io/github/license/can1357/oh-my-pi?style=flat&colorA=222222&colorB=58A6FF" alt="License"></a>
+  <a href="packages/coding-agent/CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-keep-E05735?style=flat&colorA=222222" alt="Changelog"></a>
+  <a href="https://github.com/sw1ftin/vomp/actions"><img src="https://img.shields.io/github/actions/workflow/status/sw1ftin/vomp/ci.yml?style=flat&colorA=222222&colorB=3FB950" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/sw1ftin/vomp?style=flat&colorA=222222&colorB=58A6FF" alt="License"></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&colorA=222222&logo=typescript&logoColor=white" alt="TypeScript"></a>
   <a href="https://www.rust-lang.org"><img src="https://img.shields.io/badge/Rust-DEA584?style=flat&colorA=222222&logo=rust&logoColor=white" alt="Rust"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6?style=flat&colorA=222222" alt="Bun"></a>
@@ -38,85 +37,50 @@ The most capable agent surface that ships. Continuously tuned by real-world use 
 
 ## Install
 
-**macOS · Linux**
+Build Vomp from [sw1ftin/vomp](https://github.com/sw1ftin/vomp). For a source installation, use Bun 1.4.4 or newer, Rustup, and the platform's C/C++ build tools. On Windows, install the MSVC C++ build tools.
+
+From a terminal on Linux, macOS, or Windows:
 
 ```sh
-curl -fsSL https://omp.sh/install | sh
+git clone https://github.com/sw1ftin/vomp.git
+cd vomp
+bun run setup --vomp
+vomp --version
 ```
 
-The install scripts fetch the prebuilt binary from `build.stencil.so` and check its SHA-256 before installing it; pass `--source` (PowerShell: `-Source`) to install the package with bun instead. Pin a release with `curl -fsSL https://omp.sh/install | sh -s -- --binary --ref v<version>` (PowerShell: `-Binary -Ref v<version>`).
-
-> **Alpine / musl:** the prebuilt musl binary links `libstdc++`/`libgcc` dynamically, which stock Alpine does not ship. Install them first: `apk add libstdc++ libgcc`.
-
-**Homebrew**
-
-```sh
-brew install can1357/tap/omp
-```
-
-**Bun (recommended)**
-
-```sh
-bun install -g @oh-my-pi/pi-coding-agent
-```
+The setup command builds the native add-on and installs `vomp` (`vomp.exe` on Windows) in Bun's bin directory, usually `~/.bun/bin`. Add the printed directory to your `PATH` if needed. Set `VOMP_INSTALL_DIR` before setup to choose another directory.
 
 **Nix**
 
 ```sh
-# Run without installing
-nix run github:can1357/oh-my-pi
-
-# Or install into the active profile (Nix < 2.30: `nix profile install`)
-nix profile add github:can1357/oh-my-pi
+nix run github:sw1ftin/vomp#vomp
+nix profile add github:sw1ftin/vomp#vomp
 ```
 
-Flake consumers can use `packages.<system>.omp`, `overlays.default`, `nixosModules.default`, or `homeManagerModules.default`. A Home Manager configuration can install OMP and own its settings declaratively:
+From a local clone, use `nix run .#vomp` or `nix profile add .#vomp`.
 
-```nix
-{
-  inputs.omp.url = "github:can1357/oh-my-pi";
+### Update Vomp
 
-  # In your Home Manager module:
-  imports = [ inputs.omp.homeManagerModules.default ];
-  programs.omp = {
-    enable = true;
-    settings.startup.quiet = true;
-  };
-}
-```
-
-**Windows (PowerShell)**
-
-```powershell
-irm https://omp.sh/install.ps1 | iex
-```
-
-**Pinned versions (mise)**
-
-```sh
-mise use -g github:can1357/oh-my-pi
-```
-
-macOS · Linux · Windows · bun ≥ 1.4.4
+For a source installation, run `git pull --ff-only` and `bun run setup --vomp` from the clone. For a Nix profile installation, run `nix profile list` and upgrade the Vomp entry with `nix profile upgrade <name>`.
 
 ### Shell completions
 
-`omp` generates its own completion scripts for **bash**, **zsh**, and **fish** from the live command/flag metadata, so they never drift from the actual CLI. Subcommands, flags, and enum values complete statically; model names (`--model`, `--smol`, `--slow`, `--plan`) resolve against the bundled model catalog and `--resume` against your on-disk sessions.
+`vomp` generates its own completion scripts for **bash**, **zsh**, and **fish** from the live command/flag metadata, so they never drift from the actual CLI. Subcommands, flags, and enum values complete statically; model names (`--model`, `--smol`, `--slow`, `--plan`) resolve against the bundled model catalog and `--resume` against your on-disk sessions.
 
 ```sh
 # zsh — add to ~/.zshrc (or write the output into a file on your $fpath)
-eval "$(omp completions zsh)"
+eval "$(vomp completions zsh)"
 
 # bash — add to ~/.bashrc
-eval "$(omp completions bash)"
+eval "$(vomp completions bash)"
 
 # fish
-omp completions fish > ~/.config/fish/completions/omp.fish
+vomp completions fish > ~/.config/fish/completions/vomp.fish
 ```
 
 ## Vomp VPN on Linux
 
-Vomp builds include `/vpn` for selecting an Xray subscription profile for omp and the tools it launches. The kill switch isolates omp from the host network while keeping the device VPN and system routes in place. See the [VPN guide](docs/vpn.md) for setup, local MCP exceptions, and fork updates.
+Vomp builds include `/vpn` for selecting an Xray subscription profile for Vomp and the tools it launches. The kill switch isolates Vomp from the host network while keeping the device VPN and system routes in place. See the [VPN guide](docs/vpn.md) for setup, local MCP exceptions, and fork updates.
 
 ## Every tool, _benchmaxxed_.
 
@@ -190,7 +154,7 @@ _[Watch the capture ↗](https://omp.sh/clips/advisor.mp4)_
 
 ### 07 · Hand someone the link, they're in.
 
-/collab puts your live session on a relay and hands back a link — and a QR. A teammate joins from another terminal with omp join, or just opens it in a browser. Share read-write to pair on the same agent, or /collab view for a read-only link anyone can watch but no one can steer. Frames are sealed client-side; the relay never sees your keys.
+/collab puts your live session on a relay and hands back a link — and a QR. A teammate joins from another terminal with vomp join, or just opens it in a browser. Share read-write to pair on the same agent, or /collab view for a read-only link anyone can watch but no one can steer. Frames are sealed client-side; the relay never sees your keys.
 
 ![omp TUI: /collab view prints 'Collab session started!' with an omp join command, a my.omp.sh browser link, the note 'Anyone with this link can watch the session but cannot prompt the agent', and a large scannable QR code.](https://omp.sh/clips/collab-poster.webp)
 
@@ -234,7 +198,7 @@ Run omp inside Zed and you get the same agent you drive from the terminal — re
 
 Every other agent ships an importer and expects you to convert. omp reads the eight formats already on disk in their native shape — Cursor MDC, Cline .clinerules, Codex AGENTS.md, Copilot applyTo, and the rest. No migration script, no YAML-to-TOML port, no "supported subset" footnotes. The config your team wrote last quarter still works tonight.
 
-### 16 · omp commit: atomic splits, validated messages
+### 16 · vomp commit: atomic splits, validated messages
 
 omp reads the working tree through git_overview, git_file_diff, and git_hunk, then splits unrelated changes into atomic commits ordered by their dependencies. Cycles are rejected before anything is written. Source files score above tests, docs, and configs, so the headline commit is the one that matters. Lock files are excluded from analysis entirely.
 
@@ -381,7 +345,7 @@ providers:
            maxTokens: 32000
 ```
 
-Run `omp models spark` to verify discovery. Then run `omp setup` and choose the model in the default-model step, or open `/model` in a session and assign it to the `default` role.
+Run `vomp models spark` to verify discovery. Then run `vomp setup` and choose the model in the default-model step, or open `/model` in a session and assign it to the `default` role.
 
 To preconfigure the default without the picker, add the selector to `~/.omp/agent/config.yml`:
 
@@ -508,7 +472,7 @@ Inside `pi-natives`, the per-module breakdown (glue and tests omitted):
 
 ## Four entry points: _interactive_, _one-shot_, RPC, and ACP.
 
-Same engine, four wrappers. `omp` runs the TUI. `omp -p` answers a single prompt and exits. The Node SDK embeds the session in your process. `omp --mode rpc` and `omp acp` hand the wheel to another program over stdio.
+Same engine, four wrappers. `vomp` runs the TUI. `vomp -p` answers a single prompt and exits. The Node SDK embeds the session in your process. `vomp --mode rpc` and `vomp acp` hand the wheel to another program over stdio.
 
 ### Interactive — when in doubt, the agent asks
 
@@ -541,12 +505,12 @@ await session.prompt("list .ts files");
 
 ### RPC — drive over stdio
 
-`omp --mode rpc`
+`vomp --mode rpc`
 
 For non-Node embedders, or when you want process isolation. NDJSON commands in, response and event frames out; each prompt ends with its own `prompt_result`. `--mode rpc-ui` adds tool cards, selectors, and dialogs as `extension_ui_request` frames the host must answer; `--no-ui` keeps even extension dialogs off the wire for hosts with no UI.
 
 ```
-$ omp --mode rpc --no-session
+$ vomp --mode rpc --no-session
 > {"id":"r1","type":"prompt","message":"list .ts files"}
 < {"id":"r1","type":"response", ...}
 > {"id":"r2","type":"set_model","provider":"anthropic","modelId":"sonnet-4.5"}
@@ -555,7 +519,7 @@ $ omp --mode rpc --no-session
 
 ### ACP — speak to editors
 
-`omp acp`
+`vomp acp`
 
 The [Agent Client Protocol](https://github.com/zed-industries/agent-client-protocol) over JSON-RPC. When the editor advertises capabilities, tool I/O routes through it and writes are gated by `session/request_permission`.
 
@@ -572,7 +536,7 @@ Full reference: [omp.sh/docs/sdk](https://omp.sh/docs/sdk).
 
 Pick it up at **[omp.sh](https://omp.sh)**.
 
-omp is a fork of [Pi](https://github.com/badlogic/pi-mono) by [Mario Zechner](https://github.com/mariozechner), rewritten as a coding-first surface: sessions, subagents, slash commands, extensions — all TypeScript, all MIT, all on [GitHub](https://github.com/can1357/oh-my-pi). Shape it from config, hook it from outside, or read the source when you need to.
+Vomp forks [oh-my-pi](https://github.com/can1357/oh-my-pi), which extends [Mario Zechner](https://github.com/mariozechner)'s [Pi](https://github.com/badlogic/pi-mono) with sessions, subagents, slash commands, and extensions. Shape it from config, hook it from outside, or read the source when you need to.
 
 ### Primitives
 
@@ -616,17 +580,19 @@ Use `--no-extensions` to skip ambient extension discovery; or use `--trusted-ext
 Fresh clones need both workspace dependencies and the local Rust/N-API addon before the source CLI can start.
 
 ```sh
-bun setup
+bun install
+bun run build:native
 bun dev
 ```
 
-`bun setup` installs Bun workspaces and builds `@oh-my-pi/pi-natives`. Re-run `bun run build:native` after changing Rust crates or `packages/natives`.
+`bun install` installs the workspaces. `bun run build:native` builds `@oh-my-pi/pi-natives`. Re-run `bun run build:native` after changing Rust crates or `packages/natives`.
 
 Nix users get the pinned Bun and Rust toolchains plus all native build dependencies:
 
 ```sh
 nix develop
-bun setup
+bun install
+bun run build:native
 bun dev
 ```
 
@@ -712,7 +678,7 @@ Third-party and vendored code, including the third-party portions identified
 in `crates/pi-builtins/LICENSE`, remains under its respective upstream license.
 Each shipped component carries its own `THIRD-PARTY-NOTICES.txt`: the CLI
 (`packages/coding-agent`), the native addon (`packages/natives`), and robomp
-(`python/robomp`). `omp --license` prints the CLI's and the addon's.
+(`python/robomp`). `vomp --license` prints the CLI's and the addon's.
 
 © 2025 Mario Zechner  
 © 2025-2026 Can Bölük  
@@ -722,8 +688,8 @@ _made for terminals that stay open_
 
 - [omp.sh](https://omp.sh)
 - [Stencil Labs](https://stencil.so)
-- [GitHub](https://github.com/can1357/oh-my-pi)
-- [Changelog](https://github.com/can1357/oh-my-pi/blob/main/packages/coding-agent/CHANGELOG.md)
-- [npm](https://www.npmjs.com/package/@oh-my-pi/pi-coding-agent)
+- [Vomp on GitHub](https://github.com/sw1ftin/vomp)
+- [Upstream oh-my-pi](https://github.com/can1357/oh-my-pi)
+- [Changelog](packages/coding-agent/CHANGELOG.md)
 - [Discord](https://discord.gg/4NMW9cdXZa)
-- [MIT](https://github.com/can1357/oh-my-pi/blob/main/LICENSE)
+- [MIT](LICENSE)

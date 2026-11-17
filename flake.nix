@@ -106,6 +106,10 @@
         in
         {
           inherit omp;
+          vomp = (pkgsFor system).writeShellScriptBin "vomp" ''
+            export OMP_CLI_NAME=vomp
+            exec "${omp}/bin/omp" "$@"
+          '';
           default = omp;
         }
       );
@@ -117,6 +121,11 @@
           meta.description = "Run OMP";
         };
         omp = self.apps.${system}.default;
+        vomp = {
+          type = "app";
+          program = "${self.packages.${system}.vomp}/bin/vomp";
+          meta.description = "Run Vomp";
+        };
       });
 
       devShells = forAllSystems (

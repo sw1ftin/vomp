@@ -1,3 +1,4 @@
+import { CLI_BIN_NAME } from "../cli/launcher-name";
 import type { SlashCommandSpec, TuiSlashCommandRuntime } from "../slash-commands/types";
 import { parseSlashCommand } from "../slash-commands/helpers/parse";
 import { requestVpn, safeVpnError } from "./control";
@@ -119,7 +120,9 @@ export const VPN_SLASH_COMMAND: SlashCommandSpec = {
 	async handle(command, runtime) {
 		const [action = "status", ...args] = command.args ? command.args.split(/\s+/) : [];
 		if (action === "add") {
-			await runtime.output("Use /vpn add in the local TUI for masked entry or omp vpn add with the URL on stdin.");
+			await runtime.output(
+				`Use /vpn add in the local TUI for masked entry or ${CLI_BIN_NAME} vpn add with the URL on stdin.`,
+			);
 			return;
 		}
 		try {

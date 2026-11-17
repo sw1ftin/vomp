@@ -1,3 +1,4 @@
+import { CLI_BIN_NAME } from "../cli/launcher-name";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { $ } from "bun";
@@ -22,7 +23,7 @@ function binaryPath(sha256: string): string {
 }
 
 export async function verifyCore(core?: VpnCore): Promise<string> {
-	if (!core) throw new VpnError("Install Xray with /vpn core install or omp vpn core install.");
+	if (!core) throw new VpnError(`Install Xray with /vpn core install or ${CLI_BIN_NAME} vpn core install.`);
 	const binary = binaryPath(core.sha256);
 	try {
 		const stat = await fs.lstat(binary);
