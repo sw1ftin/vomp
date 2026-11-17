@@ -484,6 +484,8 @@ import { combine, type SettingValueOf } from "../config/registry";
 import { cfgAdvisorEnabled, cfgAdvisorMaxNotesPerUpdate } from "../advisor/settings";
 import { cfgExtensionAssistantTextRenderers, cfgExtensionTranscriptPresenters } from "../extensibility/settings";
 import { cfgTierAdvisor } from "../session/settings";
+import { watchVpnStatus } from "../vpn/control";
+import { isVpnCommand } from "../vpn/tui";
 import {
 	cfgCompactionEnabled,
 	cfgCompactionIdleEnabled,
@@ -1896,6 +1898,7 @@ export class InteractiveMode implements InteractiveModeContext {
 		return this.#eventBus;
 	}
 	readonly #extensionUiController: ExtensionUiController;
+	#stopVpnStatus?: () => void;
 	/**
 	 * Settles pending `cfg://` approval prompts when the mode stops, so a
 	 * prompt armed without a deadline cannot outlive the UI waiting on it.
@@ -2500,7 +2503,7 @@ export class InteractiveMode implements InteractiveModeContext {
 				this.session.beginDispose();
 				this.statusLine.dispose();
 			},
-			saveDraft: text => this.sessionManager.saveDraft(text),
+			saveDraft: text => this.sessionManager.saveDraft(isVpnCommand(text) ? "" : text),
 			disposeSession: async reason => {
 				await this.#btwController.dispose();
 				await this.session.dispose({
@@ -2846,6 +2849,8 @@ export class InteractiveMode implements InteractiveModeContext {
 
 		// Initialize hooks with TUI-based UI context
 		await logger.time("InteractiveMode.init:hooks", () => this.initHooksAndCustomTools());
+		this.#stopVpnStatus?.();
+		this.#stopVpnStatus = watchVpnStatus(status => this.setHookStatus("vpn", status));
 		// A live `disabledExtensions` edit suspends or resumes extensions: drop (or restore) their link
 		// schemes and renderers from the transcript.
 		const extensionRunner = this.session.extensionRunner;
@@ -8163,6 +8168,8 @@ export class InteractiveMode implements InteractiveModeContext {
 	}
 
 	stop(): void {
+		this.#stopVpnStatus?.();
+		this.#stopVpnStatus = undefined;
 		this.#closeAttempt?.abort();
 		this.syncIdleMaintenanceView(null);
 		this.#hidePlanReview();

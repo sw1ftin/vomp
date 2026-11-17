@@ -54,6 +54,7 @@ import { USER_INTERRUPT_LABEL } from "../../session/messages";
 import { PINNED_HUD_TOGGLE_ID } from "../../task/output-manager";
 import { pickRecentFocusableAgentId } from "./session-focus-controller";
 import { executeBuiltinSlashCommand, lookupBuiltinSlashCommand } from "../../slash-commands/builtin-registry";
+import { isVpnCommand, runVpnTui } from "../../vpn/tui";
 import { restoreDetachedDraft } from "../../slash-commands/helpers/draft";
 import { parseSlashCommand, parseSubcommand } from "../../slash-commands/helpers/parse";
 import { isTinyLocalModelKey } from "../../tiny/models";
@@ -115,6 +116,7 @@ const REMOTE_CLIPBOARD_STATUS =
  * on the earliest whitespace or colon — so /login:?code=... is correctly matched.
  */
 export function shouldSkipHistory(slashText: string): boolean {
+	if (isVpnCommand(slashText)) return true;
 	if (!slashText.startsWith("/")) return false;
 	const body = slashText.slice(1);
 	// Match parseSlashCommand: split on earliest whitespace or colon.
@@ -1092,6 +1094,10 @@ export class InputController {
 
 	setupEditorSubmitHandler(): void {
 		const submit = async (text: string) => {
+			if (isVpnCommand(text)) {
+				await runVpnTui(text, { ctx: this.ctx });
+				return;
+			}
 			const submittedText = text;
 			// The Editor resets before calling onSubmit, so this is normally empty;
 			// different editor text after an await below is a newer draft.
@@ -2146,7 +2152,13 @@ export class InputController {
 
 	/** Send editor text as a follow-up message (queued behind current stream). */
 	async handleFollowUp(): Promise<void> {
-		let text = this.#compactDraftImages(this.ctx.editor.getExpandedText().trim());
+		const expanded = this.ctx.editor.getExpandedText();
+		if (isVpnCommand(expanded)) {
+			this.ctx.editor.clearDraft();
+			await runVpnTui(expanded, { ctx: this.ctx });
+			return;
+		}
+		let text = this.#compactDraftImages(expanded.trim());
 		let images = this.ctx.editor.pendingImages.length > 0 ? [...this.ctx.editor.pendingImages] : undefined;
 		let imageLinks =
 			images && this.ctx.editor.pendingImageLinks.length > 0 ? [...this.ctx.editor.pendingImageLinks] : undefined;

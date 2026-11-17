@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep daemons launched in a VPN-protected omp session in that session’s network namespace.
+
 ## [18.21.0] - 2026-11-16
 
 ### Fixed

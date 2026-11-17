@@ -1153,6 +1153,9 @@ export function getMnemopiEmbedRuntimeDir(): string {
 
 /** Root directory containing every per-project daemon runtime scope (~/.omp/run/daemons; XDG default: $XDG_STATE_HOME/omp/run/daemons). */
 export function getDaemonRuntimeRoot(): string {
+	if (process.env._OMP_VPN_SOCKET && process.env._OMP_VPN_RUNTIME) {
+		return path.join(process.env._OMP_VPN_RUNTIME, "daemons");
+	}
 	return dirs.rootSubdir(path.join("run", "daemons"), "state");
 }
 
@@ -1164,6 +1167,9 @@ export function getDaemonRuntimeDir(projectDir: string): string {
 
 /** Root directory containing every machine-global daemon service scope (~/.omp/run/daemons/global; XDG default: $XDG_STATE_HOME/omp/run/daemons/global). Shared across profiles. */
 export function getGlobalDaemonRuntimeRoot(): string {
+	if (process.env._OMP_VPN_SOCKET && process.env._OMP_VPN_RUNTIME) {
+		return path.join(process.env._OMP_VPN_RUNTIME, "global");
+	}
 	return dirs.baseRootSubdir(path.join("run", "daemons", "global"), "state");
 }
 

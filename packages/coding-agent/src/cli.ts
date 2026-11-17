@@ -48,6 +48,7 @@ import {
 import type * as JsProcessEntry from "./eval/js/process-entry";
 import type { WorkerInbound as JsWorkerInbound, WorkerOutbound as JsWorkerOutbound } from "./eval/js/worker-protocol";
 import { startParentWatchdog } from "./subprocess/parent-watchdog";
+import { bootstrapVpn } from "./vpn/control";
 
 if (Bun.semver.order(Bun.version, MIN_BUN_VERSION) < 0) {
 	process.stderr.write(
@@ -476,6 +477,8 @@ export async function runCli(argv: string[]): Promise<void> {
 	// `--profile`, `-c` included), so it dispatches before profile bootstrap,
 	// prepaint, network setup and the command table.
 	if (isNativeShell(argv[0])) {
+		if (isProcessEntry && Bun.isMainThread && (await bootstrapVpn(argv, argv, process.env.PI_COMPILED === "true")))
+			return;
 		await runNativeShell(argv);
 	}
 	let resolvedArgv = argv;
@@ -548,6 +551,13 @@ export async function runCli(argv: string[]): Promise<void> {
 		}
 		return;
 	}
+
+	if (
+		isProcessEntry &&
+		Bun.isMainThread &&
+		(await bootstrapVpn(resolvedArgv, argv, process.env.PI_COMPILED === "true"))
+	)
+		return;
 
 	if (resolvedArgv[0] === "--license") {
 		// Command boundary: bundled notices are read only when requested.
