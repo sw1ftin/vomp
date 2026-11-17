@@ -114,6 +114,10 @@ eval "$(omp completions bash)"
 omp completions fish > ~/.config/fish/completions/omp.fish
 ```
 
+## Vomp VPN on Linux
+
+Vomp builds include `/vpn` for selecting an Xray subscription profile for omp and the tools it launches. The kill switch isolates omp from the host network while keeping the device VPN and system routes in place. See the [VPN guide](docs/vpn.md) for setup, local MCP exceptions, and fork updates.
+
 ## Every tool, _benchmaxxed_.
 
 Edits that land on the first attempt. Reads that summarize files instead of dumping their content. Searches that return instantly. Pick any model — omp will get it right.
